@@ -19,35 +19,36 @@ object PunFinder {
     val pronunciation = command.!!
 
     pronunciation.trim.drop(4)
-  }                            
-  
+  }
+
   def getPrefix(text: String, len: Int): String = {
-    if (text.length >= len) {text.take(len)} else {text}
+    if (text.length >= len) { text.take(len) } else { text }
   }
-  
+
   def getSuffix(text: String, len: Int): String = {
-    if (text.length >= len) {text.takeRight(len)} else {text}
+    if (text.length >= len) { text.takeRight(len) } else { text }
   }
-  
+
   def pronouncedSame(x: String, y: String, len: Int): Boolean = {
-    getPrefix(x, len) == getSuffix(y, len) || 
+    //getPrefix(x, len) == getSuffix(y, len) ||
     getSuffix(x, len) == getPrefix(y, len)
   }
-  
-	val prontest = getPronunciation("testing test of tests")
+  def main(args: Array[String]) {
+    val prontest = getPronunciation("testing test of tests")
 
-	val dict1 = Source.fromFile("/home/youness/Downloads/wordsEn.txt").getLines.toList
-  val dict = dict1.take(400)
-	val pronDict = dict.map(x => (x, getPronunciation(x)))
-	val dbl_dict = pronDict cross pronDict
-	val len = 3
-	val puns = dbl_dict.filter({case (x,y) => pronouncedSame(x._2, y._2, len)})
-	  .map({case (x,y) => (x._1, y._1)})
-	  
-	val file = new File("/home/youness/Downloads/puns")
-  val bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))
-  for (x <- puns) {
-    bw.write(x + "\n")
+    val dict1 = Source.fromFile("/home/youness/Downloads/wordsEn.txt").getLines.toList
+    val dict = dict1.take(1000)
+    val pronDict = dict.map(x => (x, getPronunciation(x)))
+    val dbl_dict = pronDict cross pronDict
+    val len = 3
+    val puns = dbl_dict.filter({ case (x, y) => pronouncedSame(x._2, y._2, len) })
+      .map({ case (x, y) => (x._1, y._1) })
+
+    val file = new File("/home/youness/Downloads/puns")
+    val bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))
+    for (x <- puns) {
+      bw.write(x + "\n")
+    }
+    bw.close()
   }
-  bw.close()
 }
