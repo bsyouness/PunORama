@@ -185,8 +185,10 @@ object Main extends App {
     .apply(ParDo.named("ScorePuns").of(Transforms.scorePuns))
   //  val bestPuns = scoredPuns
   val bestPuns: PCollection[java.util.List[Transforms.ScoredPun]] = scoredPuns
-    //  .apply(ParDo.of(Transforms.filterPuns))
+    .apply(ParDo.of(Transforms.filterPuns))
     .apply(Top.of(10000, punComparator))
+    
+  val bestPuns.GroupBy.apply(
 // https://github.com/GoogleCloudPlatform/DataflowJavaSDK/blob/master/examples/src/main/java/com/google/cloud/dataflow/examples/complete/StreamingWordExtract.java
 //      val tableSpec = new StringBuilder()
 //        .append(options.getProject()).append(":")
@@ -195,9 +197,7 @@ object Main extends App {
 //        .toString();
   
   bestPuns
-    //    .apply(ParDo.of(Transforms.formatScoredPun))
     .apply(ParDo.of(Transforms.formatSortedPuns))
-    //    .apply(TextIO.Write.to("gs://sunny_rain/tmp/punfinder_2.txt"))
     .apply(TextIO.Write.to("gs://punpalinsight/output/puns.txt"))
 //           .apply(ParDo.of(new StringToRowConverter()))
 //        .apply(BigQueryIO.Write.to(tableSpec)
