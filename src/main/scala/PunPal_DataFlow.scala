@@ -19,21 +19,20 @@ import com.google.cloud.dataflow.sdk.transforms.SerializableComparator
 
 object Transforms {
   type WAP = KV[String, String]
-  
   type ScoredPun = KV[java.lang.Long, KV[String, String]]
   
-//  val filterWords = new DoFn[String, String]() {
-//    override def processElement(c: DoFn[String, String]#ProcessContext) {
-//      val word = c.element
-//
-//      // We might invent more filters later.
-//      val isAlphanumeric = word.forall(_.isLetterOrDigit)
-//
-//      if (isAlphanumeric) {
-//        c.output(word)
-//      }
-//    }
-//  }
+  val filterWords = new DoFn[String, String]() {
+    override def processElement(c: DoFn[String, String]#ProcessContext) {
+      val word = c.element
+
+      // We might invent more filters later.
+      val isAlphanumeric = word.forall(_.isLetterOrDigit)
+
+      if (isAlphanumeric) {
+        c.output(word)
+      }
+    }
+  }
   
   // Create the Pipeline with default options.
   val getPronunciation = new DoFn[String, WAP]() {
@@ -52,8 +51,6 @@ object Transforms {
     }
     
     override def processElement(c: DoFn[String, WAP]#ProcessContext) {
-      val len = 3
-      "yes | sudo apt-get install espeak".split(" ").toSeq.!!
       val command = Seq("espeak", "-x", "-q", "\"" + c.element + "\"")
       val pronunciation = filterChar(command.!!.trim.drop(4))
       c.output(KV.of(c.element, pronunciation))
@@ -81,7 +78,7 @@ object Transforms {
     pcb.apply(ParDo.withSideInputs(view).of(doProduct))
   }
   
-  def punScore(firstPronunciation: String, secondPronunciation: String): Int = {
+  def punScore(firstPronunciation: String, secondPronunciation: String): java.lang.Long = {
      firstPronunciation.toList.inits
        .filter(x => secondPronunciation.toList.tails.contains(x)).map(_.size).max 
   }   

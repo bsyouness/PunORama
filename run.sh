@@ -1,1 +1,1 @@
-sbt "run-main Main --runner=BlockingDataflowPipelineRunner --project=younessinsight --stagingLocation=gs://younessinsight/staging --tempLocation=gs://younessinsight/tmp"
+sbt "run-main Main --runner=BlockingDataflowPipelineRunner --project=punpal-insight --stagingLocation=gs://punpalinsight/staging --tempLocation=gs://punpalinsight/tmp"
