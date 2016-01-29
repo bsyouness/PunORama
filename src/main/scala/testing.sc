@@ -26,6 +26,24 @@ object testing {
   println(text.toList.filterNot(forbiddenList.contains(_)))
                                                   //> List(t, E, s, t,  , w, 0, n,  , m, o, @,  , k, 0, m, p, l, I, 2, k, e, I, t,
                                                   //|  I, 2, d,  , t, E, d, i, b, e, @,  , w, I, D,  , b, e, @, r, I, N, z)
+  val word1 = "caterpillar"                       //> word1  : String = caterpillar
+  val word2 = "pontificat"                        //> word2  : String = pontificat
+  for (l <- word1.toList.tails) (println(l))      //> List(c, a, t, e, r, p, i, l, l, a, r)
+                                                  //| List(a, t, e, r, p, i, l, l, a, r)
+                                                  //| List(t, e, r, p, i, l, l, a, r)
+                                                  //| List(e, r, p, i, l, l, a, r)
+                                                  //| List(r, p, i, l, l, a, r)
+                                                  //| List(p, i, l, l, a, r)
+                                                  //| List(i, l, l, a, r)
+                                                  //| List(l, l, a, r)
+                                                  //| List(l, a, r)
+                                                  //| List(a, r)
+                                                  //| List(r)
+                                                  //| List()
+  word1.toList.inits.filter(x => word2.toList.tails.contains(x)).map(_.size).max
+                                                  //> res1: Int = 3
+  word1.toList.tails.contains(List())             //> res2: Boolean = true
+   
   
   
 }
