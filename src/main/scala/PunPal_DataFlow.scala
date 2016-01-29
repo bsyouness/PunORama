@@ -16,6 +16,18 @@ import com.google.cloud.dataflow.sdk.values.PCollection
 import com.google.cloud.dataflow.sdk.values.PCollectionView
 import com.google.cloud.dataflow.sdk.transforms.Top
 import com.google.cloud.dataflow.sdk.transforms.SerializableComparator
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.api.services.bigquery.model.TableRow;
+import com.google.api.services.bigquery.model.TableSchema;
+//import com.google.cloud.dataflow.examples.common.DataflowExampleUtils;
+//import com.google.cloud.dataflow.examples.common.ExampleBigQueryTableOptions;
+//import com.google.cloud.dataflow.examples.common.ExamplePubsubTopicOptions;
+import com.google.cloud.dataflow.sdk.Pipeline;
+import com.google.cloud.dataflow.sdk.PipelineResult;
+import com.google.cloud.dataflow.sdk.io.BigQueryIO;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 object Transforms {
   type WAP = KV[String, String]
@@ -77,12 +89,7 @@ object Transforms {
 
     pcb.apply(ParDo.withSideInputs(view).of(doProduct))
   }
-  
-  def punScore(firstPronunciation: String, secondPronunciation: String): java.lang.Long = {
-     firstPronunciation.toList.inits
-       .filter(x => secondPronunciation.toList.tails.contains(x)).map(_.size).max 
-  }   
-        
+          
   def scorePuns = new DoFn[KV[WAP, WAP], ScoredPun]() {
     override def processElement(c: DoFn[KV[WAP, WAP], ScoredPun]#ProcessContext) {
       val firstWord = c.element().getKey().getKey()
@@ -90,7 +97,7 @@ object Transforms {
       val secondWord = c.element().getValue().getKey()
       val secondPronunciation = c.element().getValue().getValue()
 
-      c.output(KV.of(punScore(firstPronunciation, secondPronunciation),
+      c.output(KV.of(Pun.punScore(firstPronunciation, secondPronunciation),
         KV.of(firstWord, secondWord)))
     }
   }
@@ -129,10 +136,30 @@ object Transforms {
       }
     }
   }
+  
+//    def StringToRowConverter = new DoFn[String, TableRow] {
+//    /**
+//     * In this example, put the whole string into single BigQuery field.
+//     */
+//    @Override
+//    public void processElement(ProcessContext c) {
+//      c.output(new TableRow().set("string_field", c.element()));
+//    }
+//
+//    static TableSchema getSchema() {
+//      return new TableSchema().setFields(new ArrayList<TableFieldSchema>() {
+//            // Compose the list of TableFieldSchema from tableSchema.
+//            {
+//              add(new TableFieldSchema().setName("string_field").setType("STRING"));
+//            }
+//      });
+//    }
+//  }
 }
 
 object Main extends App {
   val options = PipelineOptionsFactory.fromArgs(args).as(classOf[PipelineOptions])
+  // options.setBigQuerySchema(StringToRowConverter.getSchema())
 
   println("Starting Main")
 
@@ -148,7 +175,7 @@ object Main extends App {
   val words: PCollection[String] = p
     .apply(TextIO.Read.from("gs://punpalinsight/datasets/american-english"))
   val filtered: PCollection[String] = words
-//    .apply(ParDo.named("FilterWords").of(Transforms.filterWords))
+    .apply(ParDo.named("FilterWords").of(Transforms.filterWords))
   val sampled = filtered
     .apply(Sample.any[String](100))
   val pronunciations = sampled
@@ -160,12 +187,22 @@ object Main extends App {
   val bestPuns: PCollection[java.util.List[Transforms.ScoredPun]] = scoredPuns
     //  .apply(ParDo.of(Transforms.filterPuns))
     .apply(Top.of(10000, punComparator))
-
+// https://github.com/GoogleCloudPlatform/DataflowJavaSDK/blob/master/examples/src/main/java/com/google/cloud/dataflow/examples/complete/StreamingWordExtract.java
+//      val tableSpec = new StringBuilder()
+//        .append(options.getProject()).append(":")
+//        .append(options.getBigQueryDataset()).append(".")
+//        .append(options.getBigQueryTable())
+//        .toString();
+  
   bestPuns
     //    .apply(ParDo.of(Transforms.formatScoredPun))
     .apply(ParDo.of(Transforms.formatSortedPuns))
     //    .apply(TextIO.Write.to("gs://sunny_rain/tmp/punfinder_2.txt"))
     .apply(TextIO.Write.to("gs://punpalinsight/output/puns.txt"))
+//           .apply(ParDo.of(new StringToRowConverter()))
+//        .apply(BigQueryIO.Write.to(tableSpec)
+//            .withSchema(StringToRowConverter.getSchema()));
+
 
   p.run()
 
