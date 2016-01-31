@@ -1,4 +1,4 @@
-name := "PunPal"
+name := "PunORama"
 
 version := "0.0.1"
 

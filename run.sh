@@ -1,2 +1,2 @@
-sbt "run-main Main --runner=BlockingDataflowPipelineRunner --project=punpal-insight --stagingLocation=gs://punpalinsight/staging --tempLocation=gs://punpalinsight/tmp"
-#sbt "run-main Main --runner=DirectPipelineRunner --project=punpal-insight --stagingLocation=gs://punpalinsight/staging --tempLocation=gs://punpalinsight/tmp"
+sbt "run-main Main --runner=DataflowPipelineRunner  --project=punoramainsight --stagingLocation=gs://punorama/staging --tempLocation=gs://punorama/tmp --autoscalingAlgorithm=THROUGHPUT_BASED"
+#sbt "run-main Main --runner=DirectPipelineRunner --project=punoramainsight --stagingLocation=gs://punorama/staging --tempLocation=gs://punorama/tmp"

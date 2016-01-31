@@ -23,27 +23,28 @@ import com.google.api.services.bigquery.model.TableFieldSchema
 import com.google.cloud.dataflow.sdk.io.BigQueryIO
 
 object Transforms {
-  // WordAndPronunciation: A word and its pronunciation.
+  // WordAndPronunciation: a key-valye object of a word and its pronunciation.
   type WAP = KV[String, String]
-
+  // A scored pun: a key-value object, where the keys are the scores, and each
+  // object is tuple of  the word and its pronunciation
   type ScoredPun = KV[java.lang.Long, KV[String, String]]
 
+  // Filter out all the words that are not alphanumeric (more filters to come)
   val filterWords = new DoFn[String, String]() {
     override def processElement(c: DoFn[String, String]#ProcessContext) {
       val word = c.element()
-
       // We might invent more filters later.
       val isAlphanumeric = word.forall(_.isLetterOrDigit)
-
       if (isAlphanumeric) {
         c.output(word)
       }
     }
   }
 
+  // Using `espeak`, get the pronunciation of a word and return a WAP
   def getPronunciation = new DoFn[String, WAP]() {
+    // Install `espeak` if it hasn't been
     override def startBundle(c: DoFn[String, WAP]#Context) {
-      // Ensure espeak is installed.
       val existsCommand = "which espeak".split(" ").toSeq
       if (existsCommand.! != 0) {
         val update = "sudo apt-get update".split(" ").toSeq
@@ -56,13 +57,14 @@ object Transforms {
       }
     }
 
+    // Get the pronunciation of a word
     override def processElement(c: DoFn[String, WAP]#ProcessContext) {
       val command = Seq("espeak", "-x", "-q", "\"" + c.element + "\"")
       val pronunciation = filterChar(command.!!.trim.drop(4))
       c.output(KV.of(c.element, pronunciation))
     }
   }
-  
+
   def filterChar(text: String): String = {
     val forbiddenList = List("'", ",", "-")
     text.toList.filterNot(forbiddenList.contains(_)).mkString("")
@@ -70,7 +72,6 @@ object Transforms {
 
   def cartesianProduct(pca: PCollection[WAP], pcb: PCollection[WAP]): PCollection[KV[WAP, WAP]] = {
     val view: PCollectionView[java.lang.Iterable[WAP]] = pca.apply(View.asIterable[WAP])
-
     val doProduct = new DoFn[WAP, KV[WAP, WAP]]() {
       override def processElement(c: DoFn[WAP, KV[WAP, WAP]]#ProcessContext) {
         val collectionA: Iterable[WAP] = c.sideInput(view)
@@ -79,7 +80,6 @@ object Transforms {
         }
       }
     }
-
     pcb.apply(ParDo.withSideInputs(view).of(doProduct))
   }
 
@@ -89,7 +89,6 @@ object Transforms {
       val pron1 = c.element().getKey().getValue()
       val word2 = c.element().getValue().getKey()
       val pron2 = c.element().getValue().getValue()
-
       c.output(KV.of(Pun.punScore(pron1, pron2, word1, word2),
         KV.of(word1, word2)))
     }
@@ -129,10 +128,8 @@ object Transforms {
 
   val filterPuns = new DoFn[ScoredPun, ScoredPun]() {
     override def processElement(c: DoFn[ScoredPun, ScoredPun]#ProcessContext) {
-      val threshold = 2
-
+      val threshold = -1
       val pun = c.element()
-
       if (pun.getKey >= threshold) {
         c.output(pun)
       }
@@ -155,7 +152,7 @@ object Transforms {
 }
 
 object Main extends App {
-  // It appears we must explicity feed our command-line arguments to the
+  // It appears we must explicitly feed our command-line arguments to the
   // Pipeline constructor.
   val options = PipelineOptionsFactory.fromArgs(args).as(classOf[PipelineOptions])
 
@@ -171,32 +168,29 @@ object Main extends App {
   val p = Pipeline.create(options)
 
   val words: PCollection[String] = p
-    .apply(TextIO.Read.from("gs://punpalinsight/datasets/american-english"))
+    .apply(TextIO.Read.from("gs://punorama/datasets/american-english"))
   val filtered: PCollection[String] = words
     .apply(ParDo.named("FilterWords").of(Transforms.filterWords))
   val sampled = filtered
-    .apply(Sample.any[String](10000))
+//    .apply(Sample.any[String](100))
   val pronunciations = sampled
     .apply(ParDo.named("GetPronunciations").of(Transforms.getPronunciation))
   val pairs = Transforms.cartesianProduct(pronunciations, pronunciations)
   val scoredPuns: PCollection[Transforms.ScoredPun] = pairs
     .apply(ParDo.named("ScorePuns").of(Transforms.scorePuns))
-  //  val bestPuns = scoredPuns
   val bestPuns: PCollection[Transforms.ScoredPun] = scoredPuns
-    .apply(ParDo.of(Transforms.filterPuns))
+    .apply(ParDo.named("FilterPuns").of(Transforms.filterPuns))
 
   bestPuns
     .apply(Top.of(10000, punComparator))
-    //    .apply(ParDo.of(Transforms.formatScoredPun))
-    .apply(ParDo.of(Transforms.formatSortedPuns))
-    //    .apply(TextIO.Write.to("gs://sunny_rain/tmp/punfinder_2.txt"))
-    .apply(TextIO.Write.to("gs://punpalinsight/output/puns.txt"))
+    //    .apply(ParDo.named("FormatPuns").of(Transforms.formatScoredPun))
+    .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
+    .apply(TextIO.Write.to("gs://punorama/output/10000puns.txt"))
 
-  val tableSpec = BigQueryIO.parseTableSpec("punpal-insight:bestpuns.puns")
-  print(tableSpec)
+  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns")
+
   bestPuns
-    //    .apply(ParDo.of(Transforms.emitPuns))
-    .apply(ParDo.of(Transforms.scoredPunToWordConverter))
+    .apply(ParDo.named("FormatPuns").of(Transforms.scoredPunToWordConverter))
     .apply(BigQueryIO.Write.to(tableSpec)
       .withSchema(Transforms.tableSchema)
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE)
