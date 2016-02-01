@@ -21,14 +21,14 @@ object Pun {
     s.init + incrementedChar
   }
 
-  def punScores(dictTrie: TreeSet[String], queryWord: String): List[(Int, String)] = {
-    queryWord.tails.toList.init.zipWithIndex.flatMap(
+  def punScores(dictTrie: TreeSet[(String,String)], queryWord: (String,String)): List[(Int, (String, String))] = {
+    queryWord._1.tails.toList.init.zipWithIndex.flatMap(
       {
         case (t, i) => {
           val upperBound = nextString(t)
-          val matchingWords = dictTrie.range(t, upperBound).toList
+          val matchingWords = dictTrie.range((t, ""), (upperBound, "")).toList
           // Why not just i??
-          matchingWords.map(w => (queryWord.length - i, w))
+          matchingWords.map(w => (queryWord._1.length - i, w))
         }
       }).toList
   }
