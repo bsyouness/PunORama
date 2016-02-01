@@ -60,7 +60,7 @@ object Transforms {
     // Get the pronunciation of a word
     override def processElement(c: DoFn[String, WAP]#ProcessContext) {
       val command = Seq("espeak", "-x", "-q", "\"" + c.element + "\"")
-      val pronunciation = filterChar(command.!!.trim.drop(4))
+      val pronunciation = command.!!.trim.drop(4) //filterChar()
       c.output(KV.of(c.element, pronunciation))
     }
   }
@@ -128,7 +128,7 @@ object Transforms {
 
   val filterPuns = new DoFn[ScoredPun, ScoredPun]() {
     override def processElement(c: DoFn[ScoredPun, ScoredPun]#ProcessContext) {
-      val threshold = -1
+      val threshold = 2
       val pun = c.element()
       if (pun.getKey >= threshold) {
         c.output(pun)
@@ -172,7 +172,7 @@ object Main extends App {
   val filtered: PCollection[String] = words
     .apply(ParDo.named("FilterWords").of(Transforms.filterWords))
   val sampled = filtered
-//    .apply(Sample.any[String](100))
+    .apply(Sample.any[String](1000))
   val pronunciations = sampled
     .apply(ParDo.named("GetPronunciations").of(Transforms.getPronunciation))
   val pairs = Transforms.cartesianProduct(pronunciations, pronunciations)
@@ -185,9 +185,9 @@ object Main extends App {
     .apply(Top.of(10000, punComparator))
     //    .apply(ParDo.named("FormatPuns").of(Transforms.formatScoredPun))
     .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
-    .apply(TextIO.Write.to("gs://punorama/output/10000puns.txt"))
+    .apply(TextIO.Write.to("gs://punorama/output/puns.txt"))
 
-  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns")
+  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.1000puns")
 
   bestPuns
     .apply(ParDo.named("FormatPuns").of(Transforms.scoredPunToWordConverter))
