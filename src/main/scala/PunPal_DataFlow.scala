@@ -69,7 +69,23 @@ object Transforms {
     val forbiddenList = List("'", ",", "-")
     text.toList.filterNot(forbiddenList.contains(_)).mkString("")
   }
-
+  
+  val buildTrie = new DoFn[WAP, TreeSet[WAP]]() {
+    override def processElement(c: DoFn[WAP, TreeSet[WAP]]#ProcessContext) {
+      c.output(c.element.foldLeft(new TreeSet[WAP])(_+_))
+    }
+  }
+  
+  
+  def combineTrie(TreeSet[WAP], TreeSet[WAP]): TreeSet[WAP] = {
+    val doCombine = new DoFn[TreeSet[WAP], TreeSet[WAP]]() {
+      override def processElement(c: DoFn[TreeSet[WAP], TreeSet[WAP]]#ProcessContext) {
+        c.output(c.sideInput.foldLeft(c.element._1)(_+_))
+      }
+    }
+    dict2.apply(ParDo.withSideInputs(dict1).of(doCombine))
+  }
+  
   def cartesianProduct(pca: PCollection[WAP], pcb: PCollection[WAP]): PCollection[KV[WAP, WAP]] = {
     val view: PCollectionView[java.lang.Iterable[WAP]] = pca.apply(View.asIterable[WAP])
     val doProduct = new DoFn[WAP, KV[WAP, WAP]]() {
@@ -128,7 +144,7 @@ object Transforms {
 
   val filterPuns = new DoFn[ScoredPun, ScoredPun]() {
     override def processElement(c: DoFn[ScoredPun, ScoredPun]#ProcessContext) {
-      val threshold = -1
+      val threshold = 2
       val pun = c.element()
       if (pun.getKey >= threshold) {
         c.output(pun)
@@ -175,8 +191,13 @@ object Main extends App {
 //    .apply(Sample.any[String](100))
   val pronunciations = sampled
     .apply(ParDo.named("GetPronunciations").of(Transforms.getPronunciation))
-  val pairs = Transforms.cartesianProduct(pronunciations, pronunciations)
-  val scoredPuns: PCollection[Transforms.ScoredPun] = pairs
+  val dictTrieSingle = pronunciations
+    .apply(ParDo.named("BuildSingleDict").of(Transforms.buildTrie))
+  val dictTrie = dictTrieSingle
+    .apply(ParDoc.named("CombineDict").of(Transforms.combineTreeSet(new TreeSet[String])(_+_)
+//  val pairs = Transforms.cartesianProduct(pronunciations, pronunciations)
+  val puns = dictTrie.apply(ParDo.named("LookingUp").of(Transforms.LookUp))
+  val scoredPuns: PCollection[Transforms.ScoredPun] = puns //pairs
     .apply(ParDo.named("ScorePuns").of(Transforms.scorePuns))
   val bestPuns: PCollection[Transforms.ScoredPun] = scoredPuns
     .apply(ParDo.named("FilterPuns").of(Transforms.filterPuns))
