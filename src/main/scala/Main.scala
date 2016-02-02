@@ -21,6 +21,7 @@ import com.google.api.services.bigquery.model.TableRow
 import com.google.api.services.bigquery.model.TableSchema
 import com.google.api.services.bigquery.model.TableFieldSchema
 import com.google.cloud.dataflow.sdk.io.BigQueryIO
+import com.google.cloud.dataflow.sdk.transforms.Combine
 
 object Main extends App {
   // It appears we must explicitly feed our command-line arguments to the
@@ -43,17 +44,16 @@ object Main extends App {
   val filtered: PCollection[String] = words
     .apply(ParDo.named("FilterWords").of(Transforms.filterWords))
   val sampled = filtered
-//    .apply(Sample.any[String](100))
-  val pronunciations = sampled
+    .apply(Sample.any[String](1000))
+  val pronunciations = sampled  
     .apply(ParDo.named("GetPronunciations").of(Transforms.getPronunciation))
   
 
   val trie: PCollection[Transforms.SerializedSet] = pronunciations
     .apply(ParDo.named("TrieSeed").of(Transforms.trieSeed))
     .apply(Combine.globally(Transforms.trieCombine))  
-  val puns = dictTrie.apply(ParDo.named("LookingUp").of(Transforms.LookUp))
   val scoredPuns = Transforms.emitPuns(trie.apply(View.asSingleton[Transforms.SerializedSet]), pronunciations)
-  
+
   val bestPuns: PCollection[Transforms.ScoredPun] = scoredPuns
     .apply(ParDo.named("FilterPuns").of(Transforms.filterPuns))
   
@@ -61,9 +61,9 @@ object Main extends App {
     .apply(Top.of(10000, punComparator))
     //    .apply(ParDo.named("FormatPuns").of(Transforms.formatScoredPun))
     .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
-    .apply(TextIO.Write.to("gs://punorama/output/10000puns.txt"))
+    .apply(TextIO.Write.to("gs://punorama/output/100puns_trie.txt"))
 
-  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns")
+  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.100puns_trie")
 
   bestPuns
     .apply(ParDo.named("FormatPuns").of(Transforms.scoredPunToWordConverter))
@@ -74,7 +74,7 @@ object Main extends App {
   
   trie
     .apply(ParDo.of(Transforms.visualizeTrie))
-    .apply(TextIO.Write.to("gs://sunny_rain/tmp/serialized_trie.txt"))
+    .apply(TextIO.Write.to("gs://punorama/tmp/100serialized_trie.txt"))
   
   p.run()
 

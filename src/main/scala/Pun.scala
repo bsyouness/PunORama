@@ -21,7 +21,7 @@ object Pun {
     s.init + incrementedChar
   }
 
-  def punScores(dictTrie: TreeSet[(String,String)], queryWord: (String,String)): List[(Int, (String, String))] = {
+  def findPuns(dictTrie: TreeSet[(String,String)], queryWord: (String,String)): List[(Int, (String, String))] = {
     queryWord._1.tails.toList.init.zipWithIndex.flatMap(
       {
         case (t, i) => {

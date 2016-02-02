@@ -1,4 +1,10 @@
-package punpalimport com.google.cloud.dataflow.sdk.Pipeline
+import com.google.cloud.dataflow.sdk.values.PCollectionView
+import com.google.cloud.dataflow.sdk.transforms.DoFn
+import com.google.api.services.bigquery.model.TableFieldSchema
+import com.google.cloud.dataflow.sdk.values.PCollection
+import com.google.cloud.dataflow.sdk.values.KV
+import com.google.api.services.bigquery.model.TableSchema
+import com.google.cloud.dataflow.sdk.Pipeline
 import com.google.cloud.dataflow.sdk.io.TextIO
 import com.google.cloud.dataflow.sdk.options.PipelineOptions
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory
@@ -21,6 +27,13 @@ import com.google.api.services.bigquery.model.TableRow
 import com.google.api.services.bigquery.model.TableSchema
 import com.google.api.services.bigquery.model.TableFieldSchema
 import com.google.cloud.dataflow.sdk.io.BigQueryIO
+import com.google.cloud.dataflow.sdk.transforms.Combine.CombineFn
+import scala.pickling._
+import scala.pickling.Defaults._
+import scala.pickling.binary._
+import scala.pickling.static._
+import scala.collection.immutable.TreeSet
+import com.google.cloud.dataflow.sdk.transforms.SerializableFunction
 
 object Transforms {
   /* -----------------------------------------
@@ -55,7 +68,7 @@ object Transforms {
     // Get the pronunciation of a word
     override def processElement(c: DoFn[String, WAP]#ProcessContext) {
       val command = Seq("espeak", "-x", "-q", "\"" + c.element + "\"")
-      val pronunciation = filterChar(command.!!.trim.drop(4))
+      val pronunciation = command.!!.trim.drop(4) //filterChar)
       c.output(KV.of(c.element, pronunciation))
     }
   }
@@ -211,13 +224,13 @@ object Transforms {
         val ts = s.foldLeft(new TreeSet[(String, String)]())(_ + _)
 
         val query = (c.element.getValue, c.element.getKey)
-        val possiblePuns = Pun.overlapSizes(ts, query)
+        val possiblePuns = Pun.findPuns(ts, query)
 
         for (p <- possiblePuns) {
           val (overlap, (matchingPronunciation, matchingWord)) = p
           assert(overlap > 0)
 
-          val score = Pun.punScore(query._1, matchingPronunciation)
+          val score = Pun.punScore(query._1, matchingPronunciation, query._2, matchingWord)
           c.output(KV.of(score, KV.of(query._2, matchingWord)))
         }
       }
