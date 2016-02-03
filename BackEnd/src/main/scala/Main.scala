@@ -46,7 +46,7 @@ object Main extends App {
   val sampled = filtered
     //.apply(Sample.any[String](100))
   val pronunciations = sampled  
-    .apply(ParDo.named("GetPronunciations").of(Transforms.getPronunciation))
+    .apply(ParDo.named("GetPronunciations").of(Pronunciation.getPronunciation))
   
 
   val trie: PCollection[Transforms.SerializedSet] = pronunciations
@@ -63,7 +63,7 @@ object Main extends App {
 //    .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
 //    .apply(TextIO.Write.to("gs://punorama/output/100puns_trie.txt"))
 
-  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.100puns_trie")
+  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns_testing")
 
   bestPuns
     .apply(ParDo.named("FormatPuns").of(Transforms.scoredPunToWordConverter))
@@ -72,9 +72,9 @@ object Main extends App {
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE)
       .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED))
   
-  trie
-    .apply(ParDo.of(Transforms.visualizeTrie))
-    .apply(TextIO.Write.to("gs://punorama/tmp/100serialized_trie.txt"))
+//  trie
+//    .apply(ParDo.of(Transforms.visualizeTrie))
+//    .apply(TextIO.Write.to("gs://punorama/tmp/100serialized_trie.txt"))
   
   p.run()
 

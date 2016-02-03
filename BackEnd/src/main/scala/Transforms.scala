@@ -1,8 +1,6 @@
 import com.google.cloud.dataflow.sdk.values.PCollectionView
-import com.google.cloud.dataflow.sdk.transforms.DoFn
 import com.google.api.services.bigquery.model.TableFieldSchema
 import com.google.cloud.dataflow.sdk.values.PCollection
-import com.google.cloud.dataflow.sdk.values.KV
 import com.google.api.services.bigquery.model.TableSchema
 import com.google.cloud.dataflow.sdk.Pipeline
 import com.google.cloud.dataflow.sdk.io.TextIO
@@ -12,22 +10,17 @@ import com.google.cloud.dataflow.sdk.transforms.Count
 import com.google.cloud.dataflow.sdk.transforms.DoFn
 import com.google.cloud.dataflow.sdk.transforms.ParDo
 import com.google.cloud.dataflow.sdk.values.KV
-import com.google.cloud.dataflow.sdk.options.PipelineOptions
 import com.google.cloud.dataflow.sdk.transforms.Filter
 import com.google.cloud.dataflow.sdk.transforms.Sample
 import com.google.cloud.dataflow.sdk.transforms.View
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.sys.process._
-import com.google.cloud.dataflow.sdk.values.PCollection
-import com.google.cloud.dataflow.sdk.values.PCollectionView
-import com.google.cloud.dataflow.sdk.transforms.Top
 import com.google.cloud.dataflow.sdk.transforms.SerializableComparator
 import com.google.api.services.bigquery.model.TableRow
 import com.google.api.services.bigquery.model.TableSchema
 import com.google.api.services.bigquery.model.TableFieldSchema
 import com.google.cloud.dataflow.sdk.io.BigQueryIO
-import com.google.cloud.dataflow.sdk.transforms.Combine.CombineFn
 import scala.pickling._
 import scala.pickling.Defaults._
 import scala.pickling.binary._
@@ -47,34 +40,7 @@ object Transforms {
   type SerializedSet = Array[Byte]
   
   /* -----------------------------------------
-  								Pronunciation  
-     -----------------------------------------*/  
-   // Using `espeak`, get the pronunciation of a word and return a WAP
-  def getPronunciation = new DoFn[String, WAP]() {
-    // Install `espeak` if it hasn't been
-    override def startBundle(c: DoFn[String, WAP]#Context) {
-      val existsCommand = "which espeak".split(" ").toSeq
-      if (existsCommand.! != 0) {
-        val update = "sudo apt-get update".split(" ").toSeq
-        assert(update.! == 0)
-
-        val install = "sudo apt-get --assume-yes install espeak".split(" ").toSeq
-        assert(install.! == 0)
-
-        assert(existsCommand.! == 0)
-      }
-    }
-
-    // Get the pronunciation of a word
-    override def processElement(c: DoFn[String, WAP]#ProcessContext) {
-      val command = Seq("espeak", "-x", "-q", "\"" + c.element + "\"")
-      val pronunciation = command.!!.trim.drop(4) //filterChar)
-      c.output(KV.of(c.element, pronunciation))
-    }
-  }
-
-  /* -----------------------------------------
-  			Scoring, filtering, formatting
+  								Scoring  
      -----------------------------------------*/  
   def scorePuns = new DoFn[KV[WAP, WAP], ScoredPun]() {
     override def processElement(c: DoFn[KV[WAP, WAP], ScoredPun]#ProcessContext) {
@@ -87,6 +53,9 @@ object Transforms {
     }
   }
   
+  /* -----------------------------------------
+  								Formatting
+     -----------------------------------------*/  
   val formatSortedPuns = new DoFn[java.util.List[ScoredPun], String]() {
     override def processElement(c: DoFn[java.util.List[ScoredPun], String]#ProcessContext) {
       val puns = c.element
@@ -110,6 +79,9 @@ object Transforms {
     }
   }
 
+  /* -----------------------------------------
+  								Filtering
+     -----------------------------------------*/  
   val filterPuns = new DoFn[ScoredPun, ScoredPun]() {
     override def processElement(c: DoFn[ScoredPun, ScoredPun]#ProcessContext) {
       val threshold = 2
@@ -133,8 +105,8 @@ object Transforms {
   }
 
   def filterChar(text: String): String = {
-    val forbiddenList = List("'", ",", "-")
-    text.toList.filterNot(forbiddenList.contains(_)).mkString("")
+    val forbiddenList = List(''', ',', '-','2')
+    text.toList.filterNot(forbiddenList.contains(_)).mkString("").toUpperCase()
   }
     
   /* -----------------------------------------

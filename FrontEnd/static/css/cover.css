@@ -19,6 +19,28 @@ a:hover {
   border: 1px solid #fff;
 }
 
+.tile_div a {
+    display: block;
+    position: relative;
+    float: middle;
+    height: 50px;
+    width: 100px;
+    margin-right: 5px;
+    /*background-image: url(../../media/button.png);*/
+    background-size: contain;
+    text-align: center;
+    line-height: 50px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.title_div a.last {
+    margin-right: 0;
+}
+
+.clear {
+    clear: both;
+}
 
 /*
  * Base structure
@@ -113,10 +135,11 @@ body {
 /* Text area */
 
 .inputbox {
-  text-align: center;
+  /*text-align: center;*/
   color: #000;
   font-size: 20px;
   padding-left: 10px;
+  font-weight: normal;
 }
 
 /*

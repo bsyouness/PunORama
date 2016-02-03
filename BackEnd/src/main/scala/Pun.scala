@@ -9,14 +9,16 @@ object Pun {
   // Higher scores are better.
   def punScore(first: String, second: String, word1: String, word2: String): Int = {
     if (first == second) {
-      // This is stupid pun.
+      0
+    } else if ((first == second + "s") || (second == first + "s")) {
       0
     } else {
       val overlap = overlapSize(first, second)
-      // if the pun involves the whole pronunciation of a word, we assume
-      // for now that the pun isn't interesting
+      
       overlap
-      //if (overlap == first.size || overlap == second.size) { 0 } else { overlap }
+      // if the pun involves the whole pronunciation of a word, we could assume
+      // that the pun isn't interesting
+      // if (overlap == first.size || overlap == second.size) { 0 } else { overlap }
     }
   }
   
