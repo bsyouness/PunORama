@@ -1,0 +1,127 @@
+{
+ "name": "your puns!",
+ "children": [
+  {
+   "name": "animate",
+   "children": [
+    {"name": "ISchedulable"},
+    {"name": "Parallel"},f
+    {"name": "Pause"},
+    {"name": "Scheduler"},
+    {"name": "Sequence"},
+    {"name": "Transition"},
+    {"name": "Transitioner"},
+    {"name": "TransitionEvent"},
+    {"name": "Tween"}
+   ]
+  },
+  {
+   "name": "data",
+   "children": [
+    {"name": "DataField"},
+    {"name": "DataSchema"},
+    {"name": "DataSet"},
+    {"name": "DataSource"},
+    {"name": "DataTable"},
+    {"name": "DataUtil"}
+   ]
+  },
+  {
+   "name": "display",
+   "children": [
+    {"name": "DirtySprite"},
+    {"name": "LineSprite"},
+    {"name": "RectSprite"},
+    {"name": "TextSprite"}
+   ]
+  },
+  {
+   "name": "flex",
+   "children": [
+    {"name": "FlareVis"} 
+   ]
+  },
+  {
+   "name": "physics",
+   "children": [
+    {"name": "DragForce"},
+    {"name": "GravityForce"},
+    {"name": "IForce"},
+    {"name": "NBodyForce"},
+    {"name": "Particle"},
+    {"name": "Simulation"},
+    {"name": "Spring"},
+    {"name": "SpringForce"}
+   ]
+  },
+  {
+   "name": "query",
+   "children": [
+    {"name": "AggregateExpression"},
+    {"name": "And"},
+    {"name": "Arithmetic"},
+    {"name": "Average"},
+    {"name": "BinaryExpression"},
+    {"name": "Comparison"},
+    {"name": "CompositeExpression"},
+    {"name": "Count"},
+    {"name": "DateUtil"},
+    {"name": "Distinct"},
+    {"name": "Expression"},
+    {"name": "ExpressionIterator"},
+    {"name": "Fn"},
+    {"name": "If"},
+    {"name": "IsA"},
+    {"name": "Literal"},
+    {"name": "Match"},
+    {"name": "Maximum"},
+    {"name": "Minimum"},
+    {"name": "Not"},
+    {"name": "Or"},
+    {"name": "Query"},
+    {"name": "Range"},
+    {"name": "StringUtil"},
+    {"name": "Sum"},
+    {"name": "Variable"},
+    {"name": "Variance"},
+    {"name": "Xor"}
+   ]
+  },
+  {
+   "name": "scale",
+   "children": [
+    {"name": "IScaleMap"},
+    {"name": "LinearScale"},
+    {"name": "LogScale"},
+    {"name": "OrdinalScale"},
+    {"name": "QuantileScale"},
+    {"name": "QuantitativeScale"},
+    {"name": "RootScale"},
+    {"name": "Scale"},
+    {"name": "ScaleType"},
+    {"name": "TimeScale"}
+   ]
+  },
+  {
+   "name": "util",
+   "children": [
+    {"name": "Arrays"},
+    {"name": "Colors"},
+    {"name": "Dates"},
+    {"name": "Displays"},
+    {"name": "Filter"},
+    {"name": "Geometry"},
+    {"name": "IEvaluable"},
+    {"name": "IPredicate"},
+    {"name": "IValueProxy"},
+    {"name": "Maths"},
+    {"name": "Orientation"},
+    {"name": "Property"},
+    {"name": "Shapes"},
+    {"name": "Sort"},
+    {"name": "Stats"},
+    {"name": "Strings"}
+   ]
+  }
+ ]
+}

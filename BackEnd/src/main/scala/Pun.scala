@@ -1,0 +1,54 @@
+import scala.collection.immutable.TreeSet
+
+object Pun {
+  def overlapSize(first: String, second: String): Int = {
+    first.tails.find({ t => second.startsWith(t) }).get.size
+  }
+
+  // Given two pronunciations assign a pun score.
+  // Higher scores are better.
+  def punScore(first: String, second: String, word1: String, word2: String): Int = {
+    if (first == second) {
+      // This is stupid pun.
+      0
+    } else {
+      val overlap = overlapSize(first, second)
+      // if the pun involves the whole pronunciation of a word, we assume
+      // for now that the pun isn't interesting
+      overlap
+      //if (overlap == first.size || overlap == second.size) { 0 } else { overlap }
+    }
+  }
+  
+  def punScoreOld(pron1: String, pron2: String, word1: String, word2: String): Int = {
+    val score = if (word1 == word2) { 0 } else {
+      pron2.toList.inits
+        .filter(x => pron1.toList.tails.contains(x))
+        .map(_.size)
+        .max
+    }
+    if (score == pron2.size || score == pron1.size) { 0 } else { score }
+  }
+
+  def nextString(s: String): String = {
+    val lastChar: Char = s.last
+    val incrementedChar: Char = (lastChar.toInt + 1).toChar
+    // Make sure we actually increment the char.
+    // This would fail if the last char is the largest char, which
+    // I'm hoping won't be true for any words in the dataset.
+    assert(incrementedChar > lastChar)
+    s.init + incrementedChar
+  }
+
+  def findPuns(dictTrie: TreeSet[(String,String)], queryWord: (String,String)): List[(Int, (String, String))] = {
+    queryWord._1.tails.toList.init.zipWithIndex.flatMap(
+      {
+        case (t, i) => {
+          val upperBound = nextString(t)
+          val matchingWords = dictTrie.range((t, ""), (upperBound, "")).toList
+          // Why not just i??
+          matchingWords.map(w => (queryWord._1.length - i, w))
+        }
+      }).toList
+  }
+}

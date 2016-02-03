@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <!-- Bootstrap core CSS --> 
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Score</th>
+				<th>Word 1</th>
+				<th>Word 2</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in rows %}
+			<tr>
+				<td> {{ row.score }} </td>
+				<td> {{ row.word1 }} </td>
+				<td> {{ row.word2 }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<!--<script src="../js/buildHtmlTable.js"></script>-->
+</body>​
+</html>
+
