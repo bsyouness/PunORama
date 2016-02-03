@@ -181,13 +181,13 @@ object Main extends App {
   val bestPuns: PCollection[Transforms.ScoredPun] = scoredPuns
     .apply(ParDo.named("FilterPuns").of(Transforms.filterPuns))
 
-  bestPuns
-    .apply(Top.of(10000, punComparator))
-    //    .apply(ParDo.named("FormatPuns").of(Transforms.formatScoredPun))
-    .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
-    .apply(TextIO.Write.to("gs://punorama/output/puns.txt"))
+//  bestPuns
+//    .apply(Top.of(10000, punComparator))
+//    //    .apply(ParDo.named("FormatPuns").of(Transforms.formatScoredPun))
+//    .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
+//    .apply(TextIO.Write.to("gs://punorama/output/puns.txt"))
 
-  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.1000puns")
+  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.100puns")
 
   bestPuns
     .apply(ParDo.named("FormatPuns").of(Transforms.scoredPunToWordConverter))
