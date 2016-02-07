@@ -37,13 +37,32 @@ class ShowHome(webapp2.RequestHandler):
 
 class ShowTree(webapp2.RequestHandler):
     def get(self):
-        template_data = {}
+        find_word = cgi.escape(self.request.get('findmypun'))
+        query = "SELECT * FROM [bestpuns.similarwords] where word = '" + find_word + "'"
+        dict_response = bq.Query(query=query, project=PROJECT_NUMBER)
+        words = map(lambda word: word['v'], dict_response['rows'][0]['f'])
+        json_children = []
+        for word in words[0:9]:
+            try:
+                word = word.replace('_',' ')
+                print(word)
+                query = "SELECT * FROM [punoramainsight:bestpuns.puns_testing_words] WHERE word_0 = '" \
+                    + word.split(' ')[-1] + "' ORDER BY score DESC LIMIT 10" #" OR word_1 = '" + word + "' ORDER BY score DESC"
+                dict_response = bq.Query(query=query, project=PROJECT_NUMBER)
+                children = map(lambda row: {'name': row['f'][2]['v']}, dict_response['rows'])
+                temp_dict = {'name': word, 'children': children}
+                print(temp_dict)
+                json_children.append(temp_dict)
+            except:
+                pass    
+        json_dict = json.dumps({'name' : find_word, 'children': json_children})
         template_path = 'templates/tree.html'
-        self.response.out.write(template.render(template_path,template_data))
+        self.response.out.write(template.render(template_path, {'json_dict':json_dict}))
 
 class ShowPuns(webapp2.RequestHandler):
     def get(self):
-        query = 'SELECT * FROM [punoramainsight:bestpuns.puns] LIMIT 1000'
+        query = """SELECT * FROM [punoramainsight:bestpuns.puns_testing_words] 
+            ORDER BY score DESC LIMIT 1000"""
         dict_response = bq.Query(query=query, project=PROJECT_NUMBER)
         rows = map(lambda row: {'score': row['f'][0]['v'],
             'word1': row['f'][1]['v'], 'word2': row['f'][2]['v']}, dict_response['rows'])
@@ -51,18 +70,32 @@ class ShowPuns(webapp2.RequestHandler):
         self.response.out.write(template.render(template_path, {'rows':rows}))
 
 class FindPun(webapp2.RequestHandler):
-    def post(self):
+    def get(self):
         find_word = cgi.escape(self.request.get('findmypun'))
-        query = "SELECT * FROM [punoramainsight:bestpuns.puns] WHERE word_0 = '" + find_word + "' OR word_1 = '" + find_word + "'"
+        query = "SELECT * FROM [punoramainsight:bestpuns.puns_testing_words] WHERE word_0 = '" \
+            + find_word + "' OR word_1 = '" + find_word + "' ORDER BY score DESC"
         dict_response = bq.Query(query=query, project=PROJECT_NUMBER)
         rows = map(lambda row: {'score': row['f'][0]['v'],
             'word1': row['f'][1]['v'], 'word2': row['f'][2]['v']}, dict_response['rows'])
         template_path = 'templates/punTable.html'
+        self.response.out.write(template.render(template_path, {'rows':rows}))
+
+class ShowTweets(webapp2.RequestHandler):
+    def get(self):
+        query = """SELECT string_field, count(*)
+            FROM [dataflow_examples.streamingwordextract_youness_0205055830] 
+            group by string_field 
+            ORDER BY f0_ DESC
+            LIMIT 1000"""
+        dict_response = bq.Query(query=query, project=PROJECT_NUMBER)
+        rows = map(lambda row: {'word': row['f'][0]['v']}, dict_response['rows'])
+        template_path = 'templates/twitter.html'
         self.response.out.write(template.render(template_path, {'rows':rows}))
  
 app = webapp2.WSGIApplication([
     ('/', ShowHome),
     ('/puns',ShowPuns),
     ('/tree',ShowTree),
-    ('/find', FindPun)
+    ('/find', FindPun),
+    ('/twitter', ShowTweets)
 ], debug=True)

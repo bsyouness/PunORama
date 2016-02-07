@@ -10,6 +10,7 @@
   <meta name="author" content="">
   <link rel="icon" href="../media/favicon.ico">
   <link href='https://fonts.googleapis.com/css?family=Syncopate' rel='stylesheet' type='text/css'>
+
   <title>PunORama</title>
 
   <!-- Bootstrap core CSS --> 
@@ -50,34 +51,32 @@
               </p>
             </div>
 
-            <form action="/find" method="post">
+            <form method="post">
               <div>
                 <label>
-                  <input type="text" name="findmypun" class="inputbox">
+                  <input type="text" id="findmypun" class="inputbox">
                 </label>
               </div>
-              
-              <input type="submit" value="Make it a tree!" class="btn btn-lg btn-default">
+            </form>
 
-              
-            </form>
-            <form action="/find" method="post">
-              <input type="submit" value="Make it into a pun!" class="btn btn-lg btn-default">
-            </form>
-            <form action="/find" method="post">
-              <input type="submit" value="I want more!" class="btn btn-lg btn-default">
-            </form>
+            <div class="btn-toolbar" align="center" role="toolbar" aria-label="Toolbar with button groups">
+              <div class="btn-centered">
+                <div class="btn-group" role="group" aria-label="FindPun">
+                  <button type="button" class="btn btn-secondary btn-find">Make me laugh!</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="Tree">
+                  <button type="button" class="btn btn-secondary btn-tree">Draw me a tree!</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="Puns">
+                  <button type="button" class="btn btn-secondary btn-puns">I want more!</button>
+                </div>
+              </div>
+            </div>
 
             <div class="mastfoot">
               <div class="inner">
                 <p>Youness Bennani - <a href="http://insightdataengineering.com">Insight Data Engineering</a> -- <a href="https://www.linkedin.com/in/younessbennani">Linkedin</a>.</p>
               </div>
-            </div>
-            <div class="tile_div">
-              <a href="#">Button one</a>
-              <a href="#">Button two</a>
-              <a href="#" class="last">Button three</a>
-              <div class="clear"></div>
             </div>
 
           </div>
@@ -94,5 +93,18 @@
     <script src="../static/js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="../assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script type="text/javascript">
+    $(".btn-find").on("click", function(evt){
+      var input = $("#findmypun").val();
+      window.location = "/find?findmypun="+input;
+    });
+    $(".btn-tree").on("click", function(evt){
+      var input = $("#findmypun").val();
+      window.location = "/tree?findmypun="+input;
+    });
+    $(".btn-puns").on("click", function(evt){
+      window.location = "/puns";
+    });
+    </script>
   </body>
   </html>

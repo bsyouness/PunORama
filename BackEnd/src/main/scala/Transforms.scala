@@ -84,7 +84,7 @@ object Transforms {
      -----------------------------------------*/  
   val filterPuns = new DoFn[ScoredPun, ScoredPun]() {
     override def processElement(c: DoFn[ScoredPun, ScoredPun]#ProcessContext) {
-      val threshold = 2
+      val threshold = 1
       val pun = c.element()
       if (pun.getKey >= threshold) {
         c.output(pun)
@@ -106,7 +106,7 @@ object Transforms {
 
   def filterChar(text: String): String = {
     val forbiddenList = List(''', ',', '-','2')
-    text.toList.filterNot(forbiddenList.contains(_)).mkString("").toUpperCase()
+    text.toList.filterNot(forbiddenList.contains(_)).mkString("")//.toUpperCase()
   }
     
   /* -----------------------------------------
@@ -180,7 +180,7 @@ object Transforms {
     override def processElement(c: DoFn[SerializedSet, String]#ProcessContext) {
       val s = c.element.unpickle[Set[(String, String)]]
 
-      // TODO(ericmc): Inefficient.
+      // Inefficient.
       val ts = s.foldLeft(new TreeSet[(String, String)]())(_ + _)
 
       c.output(ts.toString)
@@ -192,7 +192,7 @@ object Transforms {
       override def processElement(c: DoFn[WAP, ScoredPun]#ProcessContext) {
         val s = c.sideInput(trieView).unpickle[Set[(String, String)]]
 
-        // TODO(ericmc): Inefficient.
+        // Inefficient.
         val ts = s.foldLeft(new TreeSet[(String, String)]())(_ + _)
 
         val query = (c.element.getValue, c.element.getKey)

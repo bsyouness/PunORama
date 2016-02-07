@@ -44,7 +44,7 @@ object Main extends App {
   val filtered: PCollection[String] = words
     .apply(ParDo.named("FilterWords").of(Transforms.filterWords))
   val sampled = filtered
-    //.apply(Sample.any[String](100))
+//    .apply(Sample.any[String](100))
   val pronunciations = sampled  
     .apply(ParDo.named("GetPronunciations").of(Pronunciation.getPronunciation))
   
@@ -63,7 +63,7 @@ object Main extends App {
 //    .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
 //    .apply(TextIO.Write.to("gs://punorama/output/100puns_trie.txt"))
 
-  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns_testing")
+  val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns_testing_pron")
 
   bestPuns
     .apply(ParDo.named("FormatPuns").of(Transforms.scoredPunToWordConverter))

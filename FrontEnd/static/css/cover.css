@@ -2,10 +2,10 @@
  * Globals
  */
 
-/* Links */
-a,
-a:focus,
-a:hover {
+ /* Links */
+ a,
+ a:focus,
+ a:hover {
   color: #fff;
 }
 
@@ -19,35 +19,31 @@ a:hover {
   border: 1px solid #fff;
 }
 
-.tile_div a {
-    display: block;
-    position: relative;
-    float: middle;
-    height: 50px;
-    width: 100px;
-    margin-right: 5px;
-    /*background-image: url(../../media/button.png);*/
-    background-size: contain;
-    text-align: center;
-    line-height: 50px;
-    text-decoration: none;
-    font-weight: bold;
+.btn-centered{
+  margin: 0; 
+  width: 60%;
+  padding-left: 10px;
 }
 
-.title_div a.last {
-    margin-right: 0;
+.btn-group{
+  margin-left: 5px;
 }
 
-.clear {
-    clear: both;
+.btn-secondary {
+  color: #333;
+  text-shadow: none; /* Prevent inheritence from `body` */
+  background-color: #fff;
+  border: 1px solid #fff;
+  float: center;
+  font-size: 16px;
 }
 
 /*
  * Base structure
  */
 
-html,
-body {
+ html,
+ body {
   height: 100%;
   background-color: #B45F06;
 }
@@ -64,7 +60,7 @@ body {
   height: 100%; /* For at least Firefox */
   min-height: 100%;
   -webkit-box-shadow: inset 0 0 100px rgba(0,0,0,.5);
-          box-shadow: inset 0 0 100px rgba(0,0,0,.5);
+  box-shadow: inset 0 0 100px rgba(0,0,0,.5);
 }
 .site-wrapper-inner {
   display: table-cell;
@@ -79,12 +75,12 @@ body {
 .inner {
   padding: 30px;
 }
-  
+
 
 /*
  * Header
  */
-.masthead-brand {
+ .masthead-brand {
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -146,7 +142,7 @@ body {
  * Cover
  */
 
-.cover {
+ .cover {
   padding: 0 20px; 
 }
 .cover .btn-lg {
@@ -159,7 +155,7 @@ body {
  * Footer
  */
 
-.mastfoot {
+ .mastfoot {
   color: #999; /* IE8 proofing */
   color: rgba(255,255,255,.5);
 }
@@ -169,7 +165,7 @@ body {
  * Affix and center
  */
 
-@media (min-width: 768px) {
+ @media (min-width: 768px) {
   /* Pull out the header and footer */
   .masthead {
     position: fixed;
