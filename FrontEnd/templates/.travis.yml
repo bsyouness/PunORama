@@ -1,0 +1,11 @@
+language: scala
+
+scala:
+  - "2.10.4"
+
+# command to install dependencies
+install:
+
+
+# command to run the script
+script: sbt test
