@@ -1,7 +1,6 @@
 *.class
 *.log
 twitter_concat.subset.bz2
-.cache*
 
 # sbt specific
 .cache
