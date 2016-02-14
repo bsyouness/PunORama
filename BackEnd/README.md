@@ -5,7 +5,7 @@ I'm finding puns from words in the English dictionary which comes with Linux: `/
 
 The puns are scored by how much overlap there is between the two words. I tried to eliminate lame puns, such as puns that are composed by two words that are almost identical (e.g., cat & cats).
 
-The [app](punoramainsight.appspot.com) offers 4 functions. 
+The [app](https://punoramainsight.appspot.com) offers 4 functions. 
   - The button `Make a pun!` allows the user to finds a pun based on her input (the input will be either the first or the second word). 
   - The button `Make a tree!` builds a tree (using D3), which shows puns for the 10 semantically closest words (see note below) to the one the user entered (the input word or related word will always be the first word of the puns).
   - The button `More puns!` shows a list of the best puns (sorted by score).
