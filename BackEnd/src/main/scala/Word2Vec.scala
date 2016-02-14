@@ -1,6 +1,14 @@
-import org.apache.commons.io.FileUtils
 import java.io.File
-import scala.sys.process._
+
+import scala.sys.process.stringSeqToProcess
+
+import org.apache.commons.io.FileUtils
+
+
+/*
+ * A suite of methods to find all most related words to all the words in the dictionary used for the puns. 
+ * Doesn't currently work...
+ */
 
 object WordToVec {
   val tmuxSessionName = "word2vecdistance"
@@ -44,7 +52,6 @@ object WordToVec {
   def getSimilarWords(word: String): Option[List[(Double, String)]] = {
     checkTmuxSessionExists()
 
-    // TODO(ericmc): This log could get unreasonably long.
     val logBefore = FileUtils.readFileToString(new File(logFile))
 
     val command = s"""tmux send-keys -t $tmuxSessionName $word C-m""".split(" ").toSeq
@@ -66,11 +73,6 @@ object WordToVec {
 
     val logAfter = FileUtils.readFileToString(new File(logFile))
 
-    //    println(logAfter)
-
-    //    println(logBefore.length)
-    //    println(logAfter.length)
-
     val newLines = logAfter.drop(logBefore.length).split("\n")
 
     val thisBlock = newLines.dropWhile(!_.contains(s"Word: $word")).take(44).toList
@@ -82,10 +84,6 @@ object WordToVec {
     Util.installPackage("gunzip", "gzip")
     Util.installPackage("tmux", "tmux")
 
-//    val gsutilExists = "which gsutil".split(" ").toSeq
-//    println(gsutilExists.!!)
-//    Util.runCommand(gsutilExists)
-    
     println(Seq("echo", "\"$USER\"").!!)
 
     print("after gsutil")

@@ -1,27 +1,18 @@
 import com.google.cloud.dataflow.sdk.Pipeline
+import com.google.cloud.dataflow.sdk.io.BigQueryIO
 import com.google.cloud.dataflow.sdk.io.TextIO
 import com.google.cloud.dataflow.sdk.options.PipelineOptions
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory
-import com.google.cloud.dataflow.sdk.transforms.Count
-import com.google.cloud.dataflow.sdk.transforms.DoFn
-import com.google.cloud.dataflow.sdk.transforms.ParDo
-import com.google.cloud.dataflow.sdk.values.KV
-import com.google.cloud.dataflow.sdk.options.PipelineOptions
-import com.google.cloud.dataflow.sdk.transforms.Filter
-import com.google.cloud.dataflow.sdk.transforms.Sample
-import com.google.cloud.dataflow.sdk.transforms.View
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.sys.process._
-import com.google.cloud.dataflow.sdk.values.PCollection
-import com.google.cloud.dataflow.sdk.values.PCollectionView
-import com.google.cloud.dataflow.sdk.transforms.Top
-import com.google.cloud.dataflow.sdk.transforms.SerializableComparator
-import com.google.api.services.bigquery.model.TableRow
-import com.google.api.services.bigquery.model.TableSchema
-import com.google.api.services.bigquery.model.TableFieldSchema
-import com.google.cloud.dataflow.sdk.io.BigQueryIO
 import com.google.cloud.dataflow.sdk.transforms.Combine
+import com.google.cloud.dataflow.sdk.transforms.ParDo
+import com.google.cloud.dataflow.sdk.transforms.SerializableComparator
+import com.google.cloud.dataflow.sdk.transforms.View
+import com.google.cloud.dataflow.sdk.values.PCollection
+
+/*
+ * A DataFlow pipeline that finds puns based on the English dictionary, and saves them to a 
+ * BigQuery table.
+ */
 
 object Main extends App {
   // It appears we must explicitly feed our command-line arguments to the
@@ -47,7 +38,6 @@ object Main extends App {
 //    .apply(Sample.any[String](100))
   val pronunciations = sampled  
     .apply(ParDo.named("GetPronunciations").of(Pronunciation.getPronunciation))
-  
 
   val trie: PCollection[Transforms.SerializedSet] = pronunciations
     .apply(ParDo.named("TrieSeed").of(Transforms.trieSeed))
@@ -57,12 +47,6 @@ object Main extends App {
   val bestPuns: PCollection[Transforms.ScoredPun] = scoredPuns
     .apply(ParDo.named("FilterPuns").of(Transforms.filterPuns))
   
-//  bestPuns
-//    .apply(Top.of(10000, punComparator))
-//    //    .apply(ParDo.named("FormatPuns").of(Transforms.formatScoredPun))
-//    .apply(ParDo.named("FormatPuns").of(Transforms.formatSortedPuns))
-//    .apply(TextIO.Write.to("gs://punorama/output/100puns_trie.txt"))
-
   val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:bestpuns.puns_testing_pron")
 
   bestPuns
@@ -71,10 +55,6 @@ object Main extends App {
       .withSchema(Transforms.tableSchema)
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE)
       .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED))
-  
-//  trie
-//    .apply(ParDo.of(Transforms.visualizeTrie))
-//    .apply(TextIO.Write.to("gs://punorama/tmp/100serialized_trie.txt"))
   
   p.run()
 

@@ -1,34 +1,35 @@
-import com.google.cloud.dataflow.sdk.transforms.Top
-import com.google.cloud.dataflow.sdk.transforms.SerializableComparator
-import org.joda.time.Duration
+import scala.collection.JavaConversions.seqAsJavaList
+
 import org.joda.time.DateTime
-import com.google.api.services.bigquery.model.TableFieldSchema
-import com.google.cloud.dataflow.sdk.values.PCollection
-import com.google.api.services.bigquery.model.TableSchema
-import com.google.cloud.dataflow.sdk.options.PipelineOptions
-import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory
+import org.joda.time.Duration
+
 import com.google.api.services.bigquery.model.TableFieldSchema
 import com.google.api.services.bigquery.model.TableRow
 import com.google.api.services.bigquery.model.TableSchema
-import common.DataflowExampleUtils
-import common.ExampleBigQueryTableOptions
-import common.ExamplePubsubTopicOptions
-import com.google.cloud.dataflow.sdk.transforms.windowing._
 import com.google.cloud.dataflow.sdk.Pipeline
-import com.google.cloud.dataflow.sdk.PipelineResult
 import com.google.cloud.dataflow.sdk.io.BigQueryIO
 import com.google.cloud.dataflow.sdk.io.PubsubIO
-import com.google.cloud.dataflow.sdk.options.Default
-import com.google.cloud.dataflow.sdk.options.Description
+import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory
 import com.google.cloud.dataflow.sdk.runners.DataflowPipelineRunner
+import com.google.cloud.dataflow.sdk.transforms.Count
 import com.google.cloud.dataflow.sdk.transforms.DoFn
 import com.google.cloud.dataflow.sdk.transforms.ParDo
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import java.io.IOException
-import java.util.ArrayList
+import com.google.cloud.dataflow.sdk.transforms.windowing.SlidingWindows
+import com.google.cloud.dataflow.sdk.transforms.windowing.Window
 import com.google.cloud.dataflow.sdk.values.KV
-import com.google.cloud.dataflow.sdk.transforms.Count
+
+import StreamingWordExtract.StreamingWordExtractOptions
+import common.DataflowExampleUtils
+
+
+/*
+ * A streaming Dataflow pipeline that reads from a file containing tweets, and writes to BigQuery.
+ *
+ * This pipeline reads lines of text from a PubSub topic created from a text file that contains
+ * tweets, filters by tweets that are in English, isolates the hashtags, and writes the output, along
+ * with a timestamp, to a BigQuery table.
+ *
+ * */
 
 object TwitterStreamHelper {
 
@@ -42,21 +43,6 @@ object TwitterStreamHelper {
       }
     }
   }
-
-  //  type HC = KV[String, java.lang.Long]
-  //  type CH = KV[java.lang.Long, String]
-  //
-  //  val swapHCToCH = new DoFn[HC, CH]() {
-  //    override def processElement(c: DoFn[HC, CH]#ProcessContext) {
-  //      c.output(KV.of(c.element.getValue, c.element.getKey))
-  //    }
-  //  }
-  //
-  //  val countComparator = new SerializableComparator[KV[String, java.lang.Long]]() {
-  //    override def compare(a: KV[String, java.lang.Long], b: KV[String, java.lang.Long]) = {
-  //      java.lang.Long.compare(a.getValue, b.getValue)
-  //    }
-  //  }
 
   val tableSchema = new TableSchema().setFields(List(
     new TableFieldSchema().setName("hashtag").setType("STRING"),
@@ -77,8 +63,6 @@ object TwitterStreamHelper {
   }
 }
 
-//abstract class TwitterStreamOptions extends ExamplePubsubTopicOptions with ExampleBigQueryTableOptions
-
 object TwitterStream extends App {
   val options = PipelineOptionsFactory.fromArgs(args)
     .withValidation()
@@ -93,20 +77,11 @@ object TwitterStream extends App {
 
   val tableSpec = BigQueryIO.parseTableSpec("punoramainsight:tweets.tweetset")
 
-  //  println("Clearing BigQuery table tweetset1...")
-  //  ClearBQTable.pipeline.run
-  //  println("Done clearing BigQuery table tweetset1")
-
-  //  type KVList = java.util.List[KV[String, java.lang.Long]]
-
   pipeline
     .apply(PubsubIO.Read.topic(options.getPubsubTopic()))
     .apply(ParDo.of(TwitterStreamHelper.getHashtags))
     .apply(Window.into[String](SlidingWindows.of(Duration.standardMinutes(1)).every(Duration.standardSeconds(20))))
     .apply(Count.perElement[String]())
-    //    .apply(ParDo.of(TwitterStreamHelper.swapHCToCH))
-    //    .apply(Top.largest(10))
-    //        .apply(Top.of(10, TwitterStreamHelper.countComparator).asSingletonView())
     .apply(ParDo.of(TwitterStreamHelper.tweetToRowConverter))
     .apply(BigQueryIO.Write.to(tableSpec)
       .withSchema(TwitterStreamHelper.tableSchema)

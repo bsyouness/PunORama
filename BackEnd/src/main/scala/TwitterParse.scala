@@ -1,27 +1,14 @@
-import spray.json._
-import DefaultJsonProtocol._
+import spray.json.JsArray
+import spray.json.JsObject
+import spray.json.JsString
+import spray.json.pimpString
+
+/*
+ * Parse a tweet, filter the tweets that are English, and return the hashtags if any.
+ */
 
 object TwitterParse {
   def getHashtags(jsonString: String): Option[List[String]] = {
-    //    val parsed = jsonString.parseJson
-    //    
-    //    parsed match {
-    //      case jso: JsObject => {
-    //        parsed.getFields("lang").toList match {
-    //          case Nil => None
-    //          case lang :: Nil => {
-    //            case s: JsString => if (s.value == "en") {
-    //              None
-    //            } else {
-    //              None
-    //            }
-    //          }
-    //          case _ => None
-    //        }
-    //      }
-    //      case _ => None
-    //    }
-
     val parsed: JsObject = jsonString.parseJson.asInstanceOf[JsObject]
     if (parsed.getFields("lang").isEmpty) {
       None
@@ -30,6 +17,7 @@ object TwitterParse {
         .getFields("hashtags").head.asInstanceOf[JsArray].elements
       val hashtags = hashtagsArray.map({
         case x: JsObject => x.getFields("text").head.asInstanceOf[JsString].value
+        // This should raise an error: all objects should be JsObject
         case _           => ???
       })
       Some(hashtags.toList)

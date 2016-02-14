@@ -1,5 +1,9 @@
 import scala.collection.immutable.TreeSet
 
+/*
+ * Determine whether two words constitute a pun, and score the pun based on the overlap between the two words.
+ */
+
 object Pun {
   def overlapSize(first: String, second: String): Int = {
     first.tails.find({ t => second.startsWith(t) }).get.size
@@ -15,27 +19,20 @@ object Pun {
     } else {
       val overlap = overlapSize(first, second)
       overlap
-      // if the pun involves the whole pronunciation of a word, we could assume
-      // that the pun isn't interesting
-      // if (overlap == first.size || overlap == second.size) { 0 } else { overlap }
     }
   }
 
   def punScore(pron1: String, pron2: String, word1: String, word2: String): Int = {
     val score = pron2.toList.inits
-        .filter(x => pron1.toList.tails.contains(x))
-        .map(_.size)
-        .max
-    if ((word1.toUpperCase() contains word2.toUpperCase()) || (word2.toUpperCase() contains word1.toUpperCase())) //(score == pron2.size || score == pron1.size) 
-    { 0 } else { score }
+      .filter(x => pron1.toList.tails.contains(x))
+      .map(_.size)
+      .max
+    if ((word1.toUpperCase() contains word2.toUpperCase()) || (word2.toUpperCase() contains word1.toUpperCase())) { 0 } else { score }
   }
 
   def nextString(s: String): String = {
     val lastChar: Char = s.last
     val incrementedChar: Char = (lastChar.toInt + 1).toChar
-    // Make sure we actually increment the char.
-    // This would fail if the last char is the largest char, which
-    // I'm hoping won't be true for any words in the dataset.
     assert(incrementedChar > lastChar)
     s.init + incrementedChar
   }

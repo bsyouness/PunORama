@@ -1,16 +1,7 @@
-import com.google.cloud.dataflow.sdk.values.PCollectionView
+import scala.sys.process.stringSeqToProcess
+
 import com.google.cloud.dataflow.sdk.transforms.DoFn
-import com.google.cloud.dataflow.sdk.transforms.ParDo
-import com.google.cloud.dataflow.sdk.values.PCollection
 import com.google.cloud.dataflow.sdk.values.KV
-import com.google.cloud.dataflow.sdk.Pipeline
-import com.google.cloud.dataflow.sdk.options.PipelineOptions
-import com.google.cloud.dataflow.sdk.transforms.Filter
-import com.google.cloud.dataflow.sdk.transforms.Sample
-import com.google.cloud.dataflow.sdk.transforms.View
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.sys.process._
 
 object Pronunciation {
   // Using `espeak`, get the pronunciation of a word and return a WAP
