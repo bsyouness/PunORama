@@ -1,0 +1,10 @@
+language: scala
+scala:
+  - "2.11.7"
+# command to install dependencies
+install:
+
+# command to run tests
+script: 
+  - cd BackEnd
+  - sbt test
